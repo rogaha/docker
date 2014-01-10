@@ -453,8 +453,25 @@ func getImagesSearch(srv *Server, version float64, w http.ResponseWriter, r *htt
 		return err
 	}
 
+	authEncoded := r.Header.Get("X-Registry-Auth")
+	authConfig := &auth.AuthConfig{}
+	if authEncoded != "" {
+		authJson := base64.NewDecoder(base64.URLEncoding, strings.NewReader(authEncoded))
+		if err := json.NewDecoder(authJson).Decode(authConfig); err != nil {
+			// for a search it is not an error if no auth was given
+			// to increase compatibility with the existing api it is defaulting to be empty
+			authConfig = &auth.AuthConfig{}
+		}
+	}
+	metaHeaders := map[string][]string{}
+	for k, v := range r.Header {
+		if strings.HasPrefix(k, "X-Meta-") {
+			metaHeaders[k] = v
+		}
+	}
+
 	term := r.Form.Get("term")
-	outs, err := srv.ImagesSearch(term)
+	outs, err := srv.ImagesSearch(term, authConfig, metaHeaders)
 	if err != nil {
 		return err
 	}

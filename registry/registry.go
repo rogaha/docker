@@ -59,7 +59,7 @@ func pingRegistryEndpoint(endpoint string) (bool, error) {
 	// versions of the registry
 	if standalone == "" {
 		return true, nil
-	// Accepted values are "true" (case-insensitive) and "1".
+		// Accepted values are "true" (case-insensitive) and "1".
 	} else if strings.EqualFold(standalone, "true") || standalone == "1" {
 		return true, nil
 	}
@@ -614,6 +614,10 @@ func (r *Registry) SearchRepositories(term string) (*SearchResults, error) {
 	if err != nil {
 		return nil, err
 	}
+	if r.authConfig != nil && len(r.authConfig.Username) > 0 {
+		req.SetBasicAuth(r.authConfig.Username, r.authConfig.Password)
+	}
+	req.Header.Set("X-Docker-Token", "true")
 	res, err := r.client.Do(req)
 	if err != nil {
 		return nil, err
