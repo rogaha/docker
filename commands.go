@@ -2232,7 +2232,6 @@ func (cli *DockerCli) call(method, path string, data interface{}) ([]byte, int, 
 		}
 		params = bytes.NewBuffer(buf)
 	}
-
 	// fixme: refactor client to support redirect
 	re := regexp.MustCompile("/+")
 	path = re.ReplaceAllString(path, "/")
@@ -2254,11 +2253,9 @@ func (cli *DockerCli) call(method, path string, data interface{}) ([]byte, int, 
 		}
 		return map[string][]string{"X-Registry-Auth": registryAuthHeader}, nil
 	}
-	if headers, err := getHeaders(authConfig); err == nil {
-		if headers != nil {
-			for k, v := range headers {
-				req.Header[k] = v
-			}
+	if headers, err := getHeaders(authConfig); err == nil && headers != nil {
+		for k, v := range headers {
+			req.Header[k] = v
 		}
 	}
 	req.Header.Set("User-Agent", "Docker-Client/"+VERSION)
