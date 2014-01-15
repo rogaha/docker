@@ -503,8 +503,8 @@ func (srv *Server) recursiveLoad(address, tmpImageDir string) error {
 	return nil
 }
 
-func (srv *Server) ImagesSearch(term string) ([]registry.SearchResult, error) {
-	r, err := registry.NewRegistry(nil, srv.HTTPRequestFactory(nil), auth.IndexServerAddress())
+func (srv *Server) ImagesSearch(term string, authConfig *auth.AuthConfig, metaHeaders map[string][]string) ([]registry.SearchResult, error) {
+	r, err := registry.NewRegistry(authConfig, srv.HTTPRequestFactory(metaHeaders), auth.IndexServerAddress())
 	if err != nil {
 		return nil, err
 	}
