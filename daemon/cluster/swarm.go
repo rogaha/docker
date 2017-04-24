@@ -430,6 +430,14 @@ func (c *Cluster) Info() types.Info {
 		info.NodeID = state.swarmNode.NodeID()
 	}
 
+	clusterInfo.WithValues(
+		info.Cluster.ID,
+		info.NodeID,
+		info.NodeAddr,
+	).Set(1)
+	clusterManagers.Set(float64(info.Managers))
+	clusterNodes.Set(float64(info.Nodes))
+
 	return info
 }
 

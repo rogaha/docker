@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api/server/httputils"
@@ -142,6 +143,7 @@ func (s *syncWriter) Write(b []byte) (count int, err error) {
 }
 
 func (br *buildRouter) postBuild(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	start := time.Now()
 	var (
 		authConfigs        = map[string]types.AuthConfig{}
 		authConfigsEncoded = r.Header.Get("X-Registry-Config")
@@ -163,6 +165,7 @@ func (br *buildRouter) postBuild(ctx context.Context, w http.ResponseWriter, r *
 	defer output.Close()
 	sf := streamformatter.NewJSONStreamFormatter()
 	errf := func(err error) error {
+		triggeredBuilds.WithValues("fail").UpdateSince(start)
 		if httputils.BoolValue(r, "q") && notVerboseBuffer.Len() > 0 {
 			output.Write(notVerboseBuffer.Bytes())
 		}
@@ -222,6 +225,6 @@ func (br *buildRouter) postBuild(ctx context.Context, w http.ResponseWriter, r *
 		stdout := &streamformatter.StdoutFormatter{Writer: output, StreamFormatter: sf}
 		fmt.Fprintf(stdout, "%s\n", string(imgID))
 	}
-
+	triggeredBuilds.WithValues("success").UpdateSince(start)
 	return nil
 }
